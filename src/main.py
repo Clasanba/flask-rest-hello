@@ -2,13 +2,16 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 import os
-from flask import Flask, request, jsonify, url_for
+from flask import Flask, request, jsonify, url_for, json
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db, User
+from models import Characters
+from models import Locations
+from models import Favorites
 #from models import Person
 
 app = Flask(__name__)
@@ -32,12 +35,52 @@ def sitemap():
 
 @app.route('/user', methods=['GET'])
 def handle_hello():
-
+    userDb = User.query.all()
+    userlist = list(map(lambda obj : obj.serialize(),userDb))
+    print(userlist)
     response_body = {
-        "msg": "Hello, this is your GET /user response "
+        "succes": True,
+        "msg": "Todo ok"
     }
 
     return jsonify(response_body), 200
+
+@app.route('/user', methods=['POST'])
+def add_User():
+    body = json.loads(request.data)
+    newUser = User(email = body["email"], password = body["password"], is_active = True)
+    db.session.add(newUser)
+    db.session.commit()
+    print(body)
+    response_body = {
+        "succes": True,
+        "msg": "Creado"
+    }
+
+    return jsonify(response_body), 200
+
+
+@app.route('/characters', methods=['GET'])
+def handle_characters():
+    characters = Characters.query.all()
+    print(characters)
+    response_body = {
+        "msg": "Hello, this is your GET /characters response "
+    }
+
+    return jsonify(response_body), 200
+
+@app.route('/favorites', methods=['GET'])
+def handle_favorites():
+    favorites = Favorites.query.all()
+    print(favorites)
+    response_body = {
+        "msg": "Hello, this is your GET /favorites response "
+    }
+
+    return jsonify(response_body), 200
+
+
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
